@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<cronentries>
+
+  <cron>
+    <url>/api/cronservice/executeAll?interval=0</url>
+    <description></description>
+    <schedule>every 1 hour</schedule>
+  </cron>
+  
+    <cron>
+    <url>/api/cronservice/executeAll?interval=1</url>
+    <description></description>
+    <schedule>every 6 hours</schedule>
+  </cron>
+  
+  
+    <cron>
+    <url>/api/cronservice/executeAll?interval=2</url>
+    <description></description>
+    <schedule>every 12 hours</schedule>
+  </cron>
+  
+  
+    <cron>
+    <url>/api/cronservice/executeAll?interval=3</url>
+    <description></description>
+    <schedule>every 24 hours</schedule>
+  </cron>
+  
+  
+    <cron>
+    <url>/api/cronservice/executeAll?interval=4</url>
+    <description></description>
+    <schedule>every 48 hours</schedule>
+  </cron>
+  
+   <cron>
+    <url>/api/cronservice/executeAll?interval=5</url>
+    <description></description>
+    <schedule>every 168 hours</schedule>
+  </cron>
+  
+  
+</cronentries>

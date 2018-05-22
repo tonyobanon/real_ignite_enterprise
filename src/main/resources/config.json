@@ -1,0 +1,33 @@
+{
+
+	"app_dependencies": [],
+
+	"custom_spi_types": {
+		
+	},
+	"platform.spi.error.locator": "com.re.paas.internal.spi.ErrorSPILocator",
+	"platform.spi.cloud_provider.locator": "com.re.paas.internal.spi.CloudProviderSPILocator",
+	"platform.spi.template_object_model.locator": "com.re.paas.internal.spi.TemplateObjectModelSPILocator",
+	"platform.spi.template_object_model_factory.locator": "com.re.paas.internal.spi.TemplateObjectModelFactorySPILocator",
+	"platform.spi.event_handler.locator": "com.re.paas.internal.spi.EventHandlerSPILocator",
+	"platform.spi.service.locator": "com.re.paas.internal.spi.ServiceSPILocator",
+	"platform.spi.model.locator": "com.re.paas.internal.spi.ModelSPILocator",
+	"platform.spi.logger.locator": "com.re.paas.internal.spi.LoggerSPILocator",
+	"platform.spi.node_role.locator": "com.re.paas.internal.spi.NodeRoleSPILocator",
+	"platform.spi.cluster_function.locator": "com.re.paas.internal.spi.ClusterFunctionSPILocator",
+	"platform.spi.task_model.locator": "com.re.paas.internal.spi.TaskModelSPILocator",
+	"platform.spi.listable.locator": "com.re.paas.internal.spi.ListableSPILocator",
+	 
+	"platform.spi.error.delegate": "com.re.paas.internal.spi.ErrorSPILocator",
+	"platform.spi.cloud_provider.delegate": "com.re.paas.internal.spi.CloudProviderSPILocator",
+	"platform.spi.template_object_model.delegate": "com.re.paas.internal.spi.TemplateObjectModelSPILocator",
+	"platform.spi.template_object_model_factory.delegate": "com.re.paas.internal.spi.TemplateObjectModelFactorySPILocator",
+	"platform.spi.event_handler.delegate": "com.re.paas.internal.spi.EventHandlerSPILocator",
+	"platform.spi.service.delegate": "com.re.paas.internal.spi.ServiceSPILocator",
+	"platform.spi.model.delegate": "com.re.paas.internal.spi.ModelSPILocator",
+	"platform.spi.logger.delegate": "com.re.paas.internal.spi.LoggerSPILocator",
+	"platform.spi.node_role.delegate": "com.re.paas.internal.spi.NodeRoleSPILocator",
+	"platform.spi.cluster_function.delegate": "com.re.paas.internal.spi.ClusterFunctionSPILocator",
+	"platform.spi.task_model.delegate": "com.re.paas.internal.spi.TaskModelSPILocator",
+	"platform.spi.listable.delegate": "com.re.paas.internal.spi.ListableSPILocator"
+}
