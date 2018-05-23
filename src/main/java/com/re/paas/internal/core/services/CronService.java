@@ -8,9 +8,9 @@ import com.re.paas.internal.base.classes.CronInterval;
 import com.re.paas.internal.base.core.GsonFactory;
 import com.re.paas.internal.core.cron.ModelTask;
 import com.re.paas.internal.core.forms.Question;
-import com.re.paas.internal.core.fusion.BaseService;
-import com.re.paas.internal.core.fusion.FusionEndpoint;
 import com.re.paas.internal.core.fusion.FusionHelper;
+import com.re.paas.internal.core.fusion.api.BaseService;
+import com.re.paas.internal.core.fusion.api.FusionEndpoint;
 import com.re.paas.internal.core.users.Functionality;
 import com.re.paas.internal.models.CronModel;
 

@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.google.gson.reflect.TypeToken;
 import com.re.paas.internal.base.classes.FluentArrayList;
-import com.re.paas.internal.base.core.DefaultLogger;
 import com.re.paas.internal.base.core.GsonFactory;
 import com.re.paas.internal.base.core.Note;
 import com.re.paas.internal.base.logging.Logger;
@@ -29,12 +28,12 @@ public class FusionHelper {
 	}
 
 	public static Long getUserId(HttpServerRequest req) {
-		String userId = req.getParam(APIRoutes.USER_ID_PARAM_NAME);
+		String userId = req.getParam(FusionServiceDelegate.USER_ID_PARAM_NAME);
 		return userId != null ? Long.parseLong(userId) : null;
 	}
 
 	public static void setUserId(HttpServerRequest req, Long userId) {
-		req.params().add(APIRoutes.USER_ID_PARAM_NAME, userId.toString());
+		req.params().add(FusionServiceDelegate.USER_ID_PARAM_NAME, userId.toString());
 
 	}
 

@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.collect.Sets;
 import com.re.paas.internal.base.core.BlockerTodo;
-import com.re.paas.internal.base.core.DefaultLogger;
 import com.re.paas.internal.base.core.Todo;
 import com.re.paas.internal.base.logging.Logger;
 
@@ -40,7 +39,7 @@ public class WebServer {
 
 	public static HttpServer server;
 
-	public static MicroServiceOptions options;
+	public static ServerOptions options;
 
 	/**
 	 *
@@ -48,13 +47,13 @@ public class WebServer {
 	 */
 
 	@BlockerTodo("Revisit shutdown Hook to JVM")
-	public static void start(MicroServiceOptions options) {
+	public static void start(ServerOptions options, FusionServiceDelegate delegate) {
 
 		vertX = Vertx.vertx(new VertxOptions().setWorkerPoolSize(100));
 
 		WebServer.options = options;
 
-		setupRouter();
+		setupRouter(delegate);
 
 		// Start Server
 		server = vertX.createHttpServer(new HttpServerOptions().setMaxWebsocketFrameSize(1000000)
@@ -74,7 +73,7 @@ public class WebServer {
 	}
 
 	@Todo("Prevent Ddos attack")
-	public static void setupRouter() {
+	private static void setupRouter(FusionServiceDelegate delegate) {
 
 		// Initialize Router
 
@@ -109,7 +108,7 @@ public class WebServer {
 		);
 
 		// Add API routes
-		router.mountSubRouter(APIRoutes.BASE_PATH, APIRoutes.get());
+		router.mountSubRouter(FusionServiceDelegate.BASE_PATH, delegate.getRouter());
 
 		// Add Web routes
 		router.mountSubRouter("/", WebRoutes.get());

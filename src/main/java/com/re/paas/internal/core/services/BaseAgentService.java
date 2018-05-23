@@ -11,9 +11,9 @@ import com.re.paas.internal.base.classes.spec.AgentOrganizationWhistleblowMessag
 import com.re.paas.internal.base.classes.spec.AgentSpec;
 import com.re.paas.internal.base.classes.spec.IssueResolution;
 import com.re.paas.internal.base.core.GsonFactory;
-import com.re.paas.internal.core.fusion.BaseService;
-import com.re.paas.internal.core.fusion.FusionEndpoint;
 import com.re.paas.internal.core.fusion.FusionHelper;
+import com.re.paas.internal.core.fusion.api.BaseService;
+import com.re.paas.internal.core.fusion.api.FusionEndpoint;
 import com.re.paas.internal.core.users.Functionality;
 import com.re.paas.internal.models.BaseAgentModel;
 

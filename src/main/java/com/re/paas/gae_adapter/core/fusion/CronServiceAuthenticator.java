@@ -1,7 +1,7 @@
 package com.re.paas.gae_adapter.core.fusion;
 
 import com.re.paas.internal.cloud_provider.CloudEnvironment;
-import com.re.paas.internal.core.fusion.ServiceAuthenticator;
+import com.re.paas.internal.core.fusion.api.ServiceAuthenticator;
 
 import io.vertx.ext.web.RoutingContext;
 

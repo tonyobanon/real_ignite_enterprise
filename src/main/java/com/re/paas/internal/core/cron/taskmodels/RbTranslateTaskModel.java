@@ -8,7 +8,7 @@ import com.re.paas.internal.base.classes.TaskExecutionOutcome;
 import com.re.paas.internal.core.cron.TaskModel;
 import com.re.paas.internal.core.forms.CompositeEntry;
 import com.re.paas.internal.core.forms.Question;
-import com.re.paas.internal.core.fusion.APIRoutes;
+import com.re.paas.internal.core.fusion.FusionServiceDelegate;
 import com.re.paas.internal.core.users.Functionality;
 
 public class RbTranslateTaskModel extends TaskModel {
@@ -26,7 +26,7 @@ public class RbTranslateTaskModel extends TaskModel {
 	@Override
 	public List<Question> fields() {
 		return new FluentArrayList<Question>().with(new CompositeEntry("target_country", ClientRBRef.get("country"))
-				.setItemsSource(APIRoutes.getUri(Functionality.GET_COUNTRY_NAMES).get(0)).setSortOrder(1)
+				.setItemsSource(FusionServiceDelegate.getFunctionalityRoute(Functionality.GET_COUNTRY_NAMES).get(0)).setSortOrder(1)
 				.setIsDefault(true));
 	}
 

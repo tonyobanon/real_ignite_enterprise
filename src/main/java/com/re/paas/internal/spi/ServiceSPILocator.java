@@ -1,7 +1,8 @@
 package com.re.paas.internal.spi;
 
 import com.google.common.collect.Lists;
-import com.re.paas.internal.core.fusion.BaseService;
+import com.re.paas.internal.core.fusion.api.BaseService;
+import com.re.paas.internal.core.fusion.api.ServiceDelegate;
 
 public class ServiceSPILocator extends BaseSPILocator {
 
@@ -18,6 +19,11 @@ public class ServiceSPILocator extends BaseSPILocator {
 	@Override
 	Class<?> classType() {
 		return BaseService.class;
+	}
+	
+	@Override
+	Class<?> delegateType() {
+		return ServiceDelegate.class;
 	}
 	
 }

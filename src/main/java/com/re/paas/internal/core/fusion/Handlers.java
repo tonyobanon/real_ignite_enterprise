@@ -5,6 +5,11 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+import com.re.paas.internal.core.fusion.api.BaseService;
+import com.re.paas.internal.core.fusion.api.Route;
+import com.re.paas.internal.core.fusion.api.ServiceAuthenticator;
+import com.re.paas.internal.core.users.Functionality;
+
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
 
@@ -14,7 +19,7 @@ public class Handlers {
 
 	public static void APIAuthHandler(RoutingContext ctx) {
 
-		String path = ctx.request().path().replace(APIRoutes.BASE_PATH, "");
+		String path = ctx.request().path().replace(FusionServiceDelegate.BASE_PATH, "");
 
 		ServiceAuthenticator authenticator = customAuthenticators.get(path);
 
@@ -36,18 +41,13 @@ public class Handlers {
 		// do not allow proxies to cache the data
 		ctx.response().putHeader("Cache-Control", "no-store, no-cache");
 
-		String uri = ctx.request().path().replace(APIRoutes.BASE_PATH, "");
+		String uri = ctx.request().path().replace(FusionServiceDelegate.BASE_PATH, "");
 		HttpMethod method = ctx.request().method();
 
 		Route route = new Route(uri, method);
+		Functionality functionality = BaseService.getDelegate().getRouteFunctionality(route);
 
-		Integer functionalityId = APIRoutes.routesMappings.get(route.toString());
-
-		if (functionalityId == null) {
-			functionalityId = -1;
-		}
-
-		if (functionalityId < 0) {
+		if (functionality == null || functionality.getId() < 0) {
 			ctx.next();
 			return;
 		}
@@ -68,12 +68,12 @@ public class Handlers {
 			hasAccess = true;
 		}
 
-		if (functionalityId > 0 && hasAccess == true) {
+		if (functionality.getId() > 0 && hasAccess == true) {
 			hasAccess = false;
 			for (String roleName : FusionHelper.getRoles(userId)) {
 
 				// Check that this role has the right to access this Uri
-				if (FusionHelper.isAccessAllowed(roleName, functionalityId)) {
+				if (FusionHelper.isAccessAllowed(roleName, functionality.getId())) {
 					hasAccess = true;
 					break;
 				}
@@ -85,7 +85,8 @@ public class Handlers {
 			ctx.next();
 		} else {
 			ctx.response().setStatusCode(HttpServletResponse.SC_UNAUTHORIZED)
-					.write(com.re.paas.internal.core.fusion.Utils.toResponse(HttpServletResponse.SC_UNAUTHORIZED)).end();
+					.write(com.re.paas.internal.core.fusion.Utils.toResponse(HttpServletResponse.SC_UNAUTHORIZED))
+					.end();
 		}
 
 	}

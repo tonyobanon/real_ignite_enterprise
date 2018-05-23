@@ -9,13 +9,15 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.re.paas.internal.core.fusion.APIRoutes;
-import com.re.paas.internal.core.fusion.Route;
+import com.re.paas.internal.core.fusion.FusionServiceDelegate;
 import com.re.paas.internal.core.fusion.RouteHandler;
+import com.re.paas.internal.core.fusion.api.BaseService;
+import com.re.paas.internal.core.fusion.api.Route;
+import com.re.paas.internal.core.fusion.api.ServiceDelegate;
 
 import io.vertx.core.http.HttpMethod;
 
-@WebServlet(urlPatterns = APIRoutes.BASE_PATH + "/*")
+@WebServlet(urlPatterns = FusionServiceDelegate.BASE_PATH + "/*")
 public class BaseApiServlet extends BaseServlet {
 
 	private static final long serialVersionUID = 1L;
@@ -28,25 +30,27 @@ public class BaseApiServlet extends BaseServlet {
 		com.re.paas.gae_adapter.core.fusion.GAERouteContext ctx = new com.re.paas.gae_adapter.core.fusion.GAERouteContext(
 				req);
 
-		String path = ctx.request().path().replace(APIRoutes.BASE_PATH, "");
+		String path = ctx.request().path().replace(FusionServiceDelegate.BASE_PATH, "");
 
 		HttpMethod method = ctx.request().method();
+
+		ServiceDelegate serviceDelegate = BaseService.getDelegate();
 
 		// Find all matching handlers
 
 		List<RouteHandler> handlers = new ArrayList<>();
 
 		// Matching all paths and methods
-		handlers.addAll(APIRoutes.getRouteHandler(new Route()));
+		handlers.addAll(serviceDelegate.getRouteHandlers(new Route()));
 
 		// Matching only current method
-		handlers.addAll(APIRoutes.getRouteHandler(new Route().setMethod(method)));
+		handlers.addAll(serviceDelegate.getRouteHandlers(new Route().setMethod(method)));
 
 		// Matching only current path
-		handlers.addAll(APIRoutes.getRouteHandler(new Route().setUri(path)));
+		handlers.addAll(serviceDelegate.getRouteHandlers(new Route().setUri(path)));
 
 		// Matching current path and method
-		handlers.addAll(APIRoutes.getRouteHandler(new Route().setMethod(method).setUri(path)));
+		handlers.addAll(serviceDelegate.getRouteHandlers(new Route().setMethod(method).setUri(path)));
 
 		// Recursively call each handler
 

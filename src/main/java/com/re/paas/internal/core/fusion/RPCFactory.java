@@ -6,24 +6,27 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 import com.re.paas.internal.base.core.BlockerTodo;
+import com.re.paas.internal.core.fusion.api.BaseService;
+import com.re.paas.internal.core.fusion.api.FusionEndpoint;
+import com.re.paas.internal.core.fusion.api.Route;
+import com.re.paas.internal.core.users.Functionality;
 
 public class RPCFactory {
 
-	private static boolean prependDomainVariableToUrl = true; 
-	
+	private static boolean prependDomainVariableToUrl = true;
+
 	public static void setPrependDomainVariableToUrl(boolean prependDomainVariableToUrl) {
 		RPCFactory.prependDomainVariableToUrl = prependDomainVariableToUrl;
 	}
-	 
+
 	/**
 	 * Generate javascript client stubs
-	 * */
+	 */
 	@BlockerTodo("Verify that none of the parameters are javascript reserved keywords")
-	public static String generateXHRClient(BaseService service, Method method,
-			FusionEndpoint endpoint, Route route) {
+	public static String generateXHRClient(BaseService service, Method method, FusionEndpoint endpoint, Route route) {
 
-		Integer functionalityId = APIRoutes.routesMappings.get(route.toString());
-		
+		Functionality functionality = BaseService.getDelegate().getRouteFunctionality(route);
+
 		StringBuilder clientFunction = new StringBuilder();
 
 		clientFunction.append("\n");
@@ -33,7 +36,7 @@ public class RPCFactory {
 
 		List<String> headerParamList = Lists.newArrayList(endpoint.headerParams());
 
-		String[] headerParams = functionalityId >= 0 ? headerParamList.toArray(new String[headerParamList.size()])
+		String[] headerParams = functionality.getId() >= 0 ? headerParamList.toArray(new String[headerParamList.size()])
 				: endpoint.headerParams();
 
 		List<String> functionParamList = new ArrayList<>();
@@ -82,22 +85,21 @@ public class RPCFactory {
 		clientFunction.append("\n");
 
 		if (endpoint.bodyParams().length > 0 && !endpoint.enableMultipart()) {
-			
+
 			clientFunction.append("\t\t\t contentType : 'application/json', ");
 
 			clientFunction.append("\n");
-			
+
 			clientFunction.append("\t\t\t data :");
 
 			clientFunction.append(" JSON.stringify(");
- 
+
 			clientFunction.append("{");
 
 			for (int i = 0; i < endpoint.bodyParams().length; i++) {
 				// clientFunction.append("\n");
 				// clientFunction.append("\t\t\t\t ")
-				clientFunction.append(endpoint.bodyParams()[i]).append(": ")
-						.append(endpoint.bodyParams()[i]);
+				clientFunction.append(endpoint.bodyParams()[i]).append(": ").append(endpoint.bodyParams()[i]);
 				if (i < endpoint.bodyParams().length - 1) {
 					clientFunction.append(", ");
 				}
@@ -147,8 +149,8 @@ public class RPCFactory {
 
 		if (endpoint.requestParams().length > 0) {
 			for (int i = 0; i < endpoint.requestParams().length; i++) {
-				requestParams.append(i == 0 ? "?" : "&").append(endpoint.requestParams()[i]).append("=")
-						.append("\"").append(" + ").append(endpoint.requestParams()[i]);
+				requestParams.append(i == 0 ? "?" : "&").append(endpoint.requestParams()[i]).append("=").append("\"")
+						.append(" + ").append(endpoint.requestParams()[i]);
 
 				if (i < endpoint.requestParams().length - 1) {
 					requestParams.append(" +").append(" \"");
@@ -157,20 +159,20 @@ public class RPCFactory {
 		} else {
 			requestParams.append("\"");
 		}
-  
-		clientFunction.append(
-				"\t\t\t url: " + (prependDomainVariableToUrl ? "FUSION_API_URL + " : "") + "\"" + APIRoutes.BASE_PATH + service.uri() + endpoint.uri() + requestParams.toString());
+
+		clientFunction.append("\t\t\t url: " + (prependDomainVariableToUrl ? "FUSION_API_URL + " : "") + "\""
+				+ FusionServiceDelegate.BASE_PATH + service.uri() + endpoint.uri() + requestParams.toString());
 
 		clientFunction.append("\n");
 
 		clientFunction.append("\t\t\t }).done(function(o) {");
- 
+
 		clientFunction.append("\n");
 
 		clientFunction.append("\t\t\t\t resolve(o);");
 
 		clientFunction.append("\n");
- 
+
 		clientFunction.append("\t\t\t })");
 
 		clientFunction.append(".fail(function(jqXHR, status, error){");

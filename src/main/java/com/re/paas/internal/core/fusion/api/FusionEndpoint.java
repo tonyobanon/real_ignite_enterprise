@@ -1,8 +1,9 @@
-package com.re.paas.internal.core.fusion;
+package com.re.paas.internal.core.fusion.api;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+import com.re.paas.internal.core.fusion.DefaultServiceAuthenticator;
 import com.re.paas.internal.core.users.Functionality;
 
 import io.vertx.core.http.HttpMethod;

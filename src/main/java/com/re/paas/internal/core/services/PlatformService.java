@@ -5,9 +5,9 @@ import javax.servlet.http.HttpServletResponse;
 import com.re.paas.internal.base.classes.InstallOptions;
 import com.re.paas.internal.base.core.Exceptions;
 import com.re.paas.internal.base.core.GsonFactory;
-import com.re.paas.internal.core.fusion.BaseService;
-import com.re.paas.internal.core.fusion.FusionEndpoint;
 import com.re.paas.internal.core.fusion.WebRoutes;
+import com.re.paas.internal.core.fusion.api.BaseService;
+import com.re.paas.internal.core.fusion.api.FusionEndpoint;
 import com.re.paas.internal.core.users.Functionality;
 import com.re.paas.internal.models.PlatformModel;
 

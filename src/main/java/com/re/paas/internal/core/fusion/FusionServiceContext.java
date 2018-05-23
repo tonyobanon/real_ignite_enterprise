@@ -2,6 +2,9 @@ package com.re.paas.internal.core.fusion;
 
 import java.lang.reflect.Method;
 
+import com.re.paas.internal.core.fusion.api.BaseService;
+import com.re.paas.internal.core.fusion.api.FusionEndpoint;
+
 public class FusionServiceContext {
 
 	private final BaseService service;

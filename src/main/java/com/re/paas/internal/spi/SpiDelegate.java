@@ -1,5 +1,6 @@
 package com.re.paas.internal.spi;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -30,7 +31,6 @@ public abstract class SpiDelegate<T> {
 	static Map<SpiTypes, Map<Object, Object>> spiResources = Collections
 			.synchronizedMap(new HashMap<SpiTypes, Map<Object, Object>>());
 
-	
 	protected static final String DEFAULT_NAMESPACE = "default";
 
 	public static SpiDelegate<?> getDelegate(SpiTypes type) {
@@ -41,14 +41,40 @@ public abstract class SpiDelegate<T> {
 		SpiDelegate.spiResources.get(type.getKey()).put(namespace, obj);
 	}
 
+	public final <S> List<S> getList(Class<S> T, String namespace) {
+		@SuppressWarnings("unchecked")
+		List<S> o = (List<S>) get(namespace);
+		return o;
+	}
+
+	public final <S> void addToList(String namespace, S obj) {
+		@SuppressWarnings("unchecked")
+		List<S> e = (List<S>) get(namespace);
+		if (e == null) {
+			e = new ArrayList<S>();
+			set(namespace, e);
+		}
+		if (!e.contains(obj)) {
+			e.add(obj);
+		} else {
+			Logger.get().warn(SpiDelegate.class.getSimpleName(), "List: " + this.getClass().getSimpleName() + "/"
+					+ namespace + " already contains element: " + obj.toString() + ", skipping ..");
+		}
+	}
+
 	public Map<Object, Object> getAll() {
 		return spiResources.get(type.getKey());
 	}
-	
+
 	protected static Map<Object, Object> getAll(SpiTypes type) {
 		return spiResources.get(type);
 	}
-	
+
+	public boolean hasKey(String namespace) {
+		Object o = SpiDelegate.spiResources.get(type.getKey()).get(namespace);
+		return o != null;
+	}
+
 	@SuppressWarnings("unchecked")
 	public Object get(String namespace) {
 		Object o = SpiDelegate.spiResources.get(type.getKey()).get(namespace);
@@ -62,7 +88,7 @@ public abstract class SpiDelegate<T> {
 	public Object get() {
 		return get(DEFAULT_NAMESPACE);
 	}
-	
+
 	public Object remove(String namespace) {
 		return spiResources.get(type.getKey()).remove(namespace);
 	}
@@ -92,7 +118,7 @@ public abstract class SpiDelegate<T> {
 	static final void start(String appId) {
 		start(appId, SpiTypes.values());
 	}
-	
+
 	static final void start(SpiTypes[] types) {
 		start(null, types);
 	}
@@ -109,8 +135,9 @@ public abstract class SpiDelegate<T> {
 			boolean newDelegate = delegate == null || !config.getValue().equals(delegate.getClass().getClassLoader());
 
 			if (newDelegate) {
-				
-				Logger.get().info("Starting new SPI Delegate " + appId != null ? "for " + appId : "" + " " + types.toString());
+
+				Logger.get().info(
+						"Starting new SPI Delegate " + appId != null ? "for " + appId : "" + " " + types.toString());
 
 				Class<? extends SpiDelegate<?>> delegateClass = ClassUtils.forName(config.getKey(), config.getValue());
 
@@ -119,6 +146,13 @@ public abstract class SpiDelegate<T> {
 				if (!delegate.getSpiType().equals(type)) {
 					Exceptions.throwRuntime(
 							"Class: " + delegateClass.getName() + " is not a delegate for SpiType: " + type.name());
+				}
+
+				BaseSPILocator locator = BaseSPILocator.defaultSpiLocator.get(type);
+
+				if (!locator.delegateType().isAssignableFrom(delegateClass)) {
+					Exceptions.throwRuntime("Class: " + delegateClass.getName() + " is not a concrete subclass of "
+							+ locator.delegateType().getName() + " as defined by " + locator.getClass().getName());
 				}
 
 				if (spiDelegates.containsKey(type)) {
@@ -136,7 +170,8 @@ public abstract class SpiDelegate<T> {
 
 			} else {
 
-				Logger.get().info("Using existing SPI Delegate " + appId != null ? "for " + appId : "" + " " + types.toString());
+				Logger.get().info(
+						"Using existing SPI Delegate " + appId != null ? "for " + appId : "" + " " + types.toString());
 
 				List<Class<?>> classes = BaseSPILocator.spiClasses.get(type).get(appId);
 

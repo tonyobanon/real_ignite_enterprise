@@ -1,4 +1,4 @@
-package com.re.paas.internal.core.fusion;
+package com.re.paas.internal.core.fusion.api;
 
 import io.vertx.ext.web.RoutingContext;
 

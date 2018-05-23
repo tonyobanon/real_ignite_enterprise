@@ -12,14 +12,15 @@ import com.re.paas.internal.cloud_provider.CloudEnvironment;
 import com.re.paas.internal.clustering.Clustering;
 import com.re.paas.internal.clustering.NodeRole;
 import com.re.paas.internal.core.cron.Scheduler;
-import com.re.paas.internal.core.fusion.APIRoutes;
-import com.re.paas.internal.core.fusion.MicroServiceOptions;
+import com.re.paas.internal.core.fusion.FusionServiceDelegate;
+import com.re.paas.internal.core.fusion.ServerOptions;
 import com.re.paas.internal.core.fusion.WebRoutes;
 import com.re.paas.internal.core.fusion.WebServer;
 import com.re.paas.internal.errors.ErrorHelper;
 import com.re.paas.internal.events.EventBus;
 import com.re.paas.internal.models.BaseModelLocator;
 import com.re.paas.internal.spi.SpiBase;
+import com.re.paas.internal.spi.SpiTypes;
 
 public class AppDelegate {
 
@@ -52,7 +53,7 @@ public class AppDelegate {
 
 		BaseModelLocator.scanModels();
 
-		APIRoutes.scanRoutes();
+		FusionServiceDelegate.scanRoutes();
 
 		// WebRoutes.scanRoutes();
 
@@ -64,15 +65,6 @@ public class AppDelegate {
 		Logger.get().info("Starting Clustering Engine");
 
 		Clustering.start();
-
-		if (CloudEnvironment.get().isStandalone()) {
-
-			Logger.get().info("Launching fusion web server ..");
-
-			WebServer.start(new MicroServiceOptions().withHost(CloudEnvironment.get().httpHost())
-					.withPort(CloudEnvironment.get().httpPort()));
-
-		}
 
 		// Ensure that our application is shutdown gracefully
 		if (CloudEnvironment.get().isStandalone()) {

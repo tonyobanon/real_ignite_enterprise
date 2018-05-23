@@ -3,9 +3,9 @@ package com.re.paas.internal.core.services;
 import java.util.Map;
 
 import com.re.paas.internal.base.core.GsonFactory;
-import com.re.paas.internal.core.fusion.BaseService;
-import com.re.paas.internal.core.fusion.FusionEndpoint;
 import com.re.paas.internal.core.fusion.FusionHelper;
+import com.re.paas.internal.core.fusion.api.BaseService;
+import com.re.paas.internal.core.fusion.api.FusionEndpoint;
 import com.re.paas.internal.core.users.Functionality;
 import com.re.paas.internal.models.ApplicationModel;
 import com.re.paas.internal.utils.ObjectUtils;

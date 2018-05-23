@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +13,6 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.re.paas.gae_adapter.core.fusion.ErrorHelper;
@@ -26,10 +24,14 @@ import com.re.paas.internal.base.core.ResourceException;
 import com.re.paas.internal.base.core.ThreadContext;
 import com.re.paas.internal.base.logging.Logger;
 import com.re.paas.internal.cloud_provider.CloudEnvironment;
+import com.re.paas.internal.core.fusion.api.BaseService;
+import com.re.paas.internal.core.fusion.api.FusionEndpoint;
+import com.re.paas.internal.core.fusion.api.Route;
+import com.re.paas.internal.core.fusion.api.ServiceDelegate;
 import com.re.paas.internal.core.services.ResourceBundleService;
 import com.re.paas.internal.core.users.Functionality;
 import com.re.paas.internal.models.LocaleModel;
-import com.re.paas.internal.spi.SpiDelegate;
+import com.re.paas.internal.spi.DependsOn;
 import com.re.paas.internal.spi.SpiTypes;
 import com.re.paas.internal.utils.ClassUtils;
 import com.re.paas.internal.utils.LocaleUtils;
@@ -43,7 +45,9 @@ import io.vertx.ext.web.Router;
 /**
  * Note: This class calls LocaleModel, to set user locale
  */
-public class APIRoutes extends SpiDelegate<BaseService> {
+
+@DependsOn(SpiTypes.CLOUD_ENVIRONMENT)
+public class FusionServiceDelegate extends ServiceDelegate {
 
 	private static final String FUSION_CLIENT_PATH = System.getProperty("java.io.tmpdir") + File.separator
 			+ AppDelegate.getPlatformPrefix() + File.separator + "fusion-service-clients" + File.separator;
@@ -53,15 +57,70 @@ public class APIRoutes extends SpiDelegate<BaseService> {
 
 	public static Pattern endpointMethodUriPattern = Pattern.compile("\\A\\Q/\\E[a-zA-Z-]+[-]*[a-zA-Z]+\\z");
 
-	private static Multimap<String, RouteHandler> routeKeys = LinkedHashMultimap.create();
-	private static Multimap<Route, RouteHandler> routes = LinkedHashMultimap.create();
+	private static final String ROUTE_HANDLER_RK_PREFIX = "rhrkp_";
+	private static final String ROUTE_HANDLER_KEYS = "rhk";
 
-	protected static Map<Object, Integer> routesMappings = new HashMap<>();
-
-	protected static Map<Integer, List<String>> functionalityToRoutesMappings = new HashMap<>();
+	private static final String ROUTE_FUNCTIONALITY_RK_PREFIX = "rfrkp_";
+	private static final String FUNCTIONALITY_ROUTES_RK_PREFIX = "rfrkp_";
 
 	protected static final String USER_ID_PARAM_NAME = "x_uid";
 	public static final String BASE_PATH = "/api";
+
+	@Override
+	public Multimap<Route, RouteHandler> getRouteHandlers() {
+
+		List<String> routes = getList(String.class, ROUTE_HANDLER_KEYS);
+
+		Multimap<Route, RouteHandler> result = LinkedHashMultimap.create(routes.size(), 2);
+
+		routes.forEach(r -> {
+			Route route = Route.fromString(r);
+			getList(RouteHandler.class, ROUTE_HANDLER_RK_PREFIX + route).forEach(h -> {
+				result.put(route, h);
+			});
+		});
+
+		return result;
+	}
+
+	@Override
+	public List<RouteHandler> getRouteHandlers(Route route) {
+		String namespace = (ROUTE_HANDLER_RK_PREFIX + route.toString());
+		return getList(RouteHandler.class, namespace);
+	}
+
+	private void addRouteHandler(Route route, RouteHandler handler) {
+		String namespace = ROUTE_HANDLER_RK_PREFIX + route.toString();
+		addToList(namespace, handler);
+		addToList(ROUTE_HANDLER_KEYS, route.toString());
+	}
+
+	@Override
+	public Functionality getRouteFunctionality(Route route) {
+		String namespace = (ROUTE_FUNCTIONALITY_RK_PREFIX + route.toString());
+		Integer functionalityId = (Integer) get(namespace);
+		return Functionality.from(functionalityId);
+	}
+
+	private void setRouteFunctionality(String route, Integer functionalityId) {
+		String namespace = ROUTE_FUNCTIONALITY_RK_PREFIX + route;
+		if (!hasKey(namespace)) {
+			set(namespace, functionalityId);
+		} else {
+			Exceptions.throwRuntime("Route: " + route + " already exists");
+		}
+	}
+
+	@Override
+	public List<String> getFunctionalityRoute(Functionality functionality) {
+		String namespace = (FUNCTIONALITY_ROUTES_RK_PREFIX + functionality.getId());
+		return getList(String.class, namespace);
+	}
+
+	private void addFunctionalityRoute(Integer functionalityId, String route) {
+		String namespace = FUNCTIONALITY_ROUTES_RK_PREFIX + functionalityId;
+		addToList(namespace, route);
+	}
 
 	@Override
 	protected void init() {
@@ -70,30 +129,7 @@ public class APIRoutes extends SpiDelegate<BaseService> {
 
 		Logger.get().debug("Scanning for API routes");
 
-		routes = ArrayListMultimap.create();
-
-		registerRoute(new Route(), new RouteHandler(ctx -> {
-
-			// Note: Vertx pools request threads, we need to create new LocalThread context
-			ThreadContext.newRequestContext();
-
-			// Auth Handler
-			Handlers.APIAuthHandler(ctx);
-
-			// Detect User Locale
-			Cookie localeCookie = ctx.getCookie(ResourceBundleService.DEFAULT_LOCALE_COOKIE);
-			List<String> locales = new ArrayList<>();
-
-			if (localeCookie != null) {
-				locales.add(localeCookie.getValue());
-			} else {
-				ctx.acceptableLanguages().forEach(lh -> {
-					locales.add(lh.value().replaceFirst(Pattern.quote("_"), LocaleUtils.LANGUAGE_COUNTRY_DELIMETER));
-				});
-			}
-			LocaleModel.setUserLocale(locales, FusionHelper.getUserId(ctx.request()));
-
-		}, false));
+		addRouteHandler(new Route(), defaultRouteHandler());
 
 		// Then, add fusion services found in classpath
 
@@ -103,7 +139,7 @@ public class APIRoutes extends SpiDelegate<BaseService> {
 		// global client context
 		Map<String, String> methodNames = new HashMap<>();
 
-		scanServices(context -> {
+		scanAll(context -> {
 
 			String className = context.getService().getClass().getSimpleName();
 			String methodName = context.getMethod().getName();
@@ -126,13 +162,9 @@ public class APIRoutes extends SpiDelegate<BaseService> {
 
 			Logger.get().trace("Mapping route: " + uri + " (" + httpMethod + ") to functionality: " + functionality);
 
-			routesMappings.put(route.toString(), context.getEndpoint().functionality().getId());
+			setRouteFunctionality(route.toString(), context.getEndpoint().functionality().getId());
 
-			if (!functionalityToRoutesMappings.containsKey(functionality.getId())) {
-				functionalityToRoutesMappings.put(functionality.getId(), new ArrayList<>());
-			}
-
-			functionalityToRoutesMappings.get(functionality.getId()).add(uri);
+			addFunctionalityRoute(functionality.getId(), uri);
 
 			if (context.getEndpoint().createXhrClient()) {
 				// Generate XHR clients
@@ -173,7 +205,7 @@ public class APIRoutes extends SpiDelegate<BaseService> {
 
 			}), context.getEndpoint().isBlocking());
 
-			registerRoute(route, handler);
+			addRouteHandler(route, handler);
 
 			// Generate Javascript client
 
@@ -183,16 +215,53 @@ public class APIRoutes extends SpiDelegate<BaseService> {
 			}
 
 		});
+
+		// All routes have been added, Start internal server
+
+		if (CloudEnvironment.get().isStandalone()) {
+
+			Logger.get().info("Launching fusion web server ..");
+
+			ServerOptions options = new ServerOptions().withHost(CloudEnvironment.get().httpHost())
+					.withPort(CloudEnvironment.get().httpPort());
+
+			WebServer.start(options, this);
+		}
+	}
+
+	private static RouteHandler defaultRouteHandler() {
+		return new RouteHandler(ctx -> {
+
+			// Note: Vertx pools request threads, we need to create new LocalThread context
+			ThreadContext.newRequestContext();
+
+			// Auth Handler
+			Handlers.APIAuthHandler(ctx);
+
+			// Detect User Locale
+			Cookie localeCookie = ctx.getCookie(ResourceBundleService.DEFAULT_LOCALE_COOKIE);
+			List<String> locales = new ArrayList<>();
+
+			if (localeCookie != null) {
+				locales.add(localeCookie.getValue());
+			} else {
+				ctx.acceptableLanguages().forEach(lh -> {
+					locales.add(lh.value().replaceFirst(Pattern.quote("_"), LocaleUtils.LANGUAGE_COUNTRY_DELIMETER));
+				});
+			}
+			LocaleModel.setUserLocale(locales, FusionHelper.getUserId(ctx.request()));
+
+		}, false);
 	}
 
 	/**
 	 * This discovers fusion services by scanning the classpath
 	 */
-	private static void scanServices(Consumer<FusionServiceContext> consumer) {
+	private void scanAll(Consumer<FusionServiceContext> consumer) {
 
 		Logger.get().debug("Scanning for services");
 
-		new SpiDelegate<BaseService>(SpiTypes.SERVICE).get(c -> {
+		get(c -> {
 
 			final BaseService service = ClassUtils.createInstance(c);
 
@@ -259,24 +328,11 @@ public class APIRoutes extends SpiDelegate<BaseService> {
 		}
 	}
 
-	/**
-	 * This returns a set of request handlers available for this app by scanning for
-	 * fusion services. It also includes an auth handler to authenticate requests.
-	 * <br>
-	 * In the course of execution, this methods populates
-	 * {@code APIRoutes.routesMappings}, and also generates javascript clients for
-	 * all fusion endpoints.
-	 * 
-	 */
-	public static void scanRoutes() {
-
-	}
-
-	protected static Router get() {
+	protected Router getRouter() {
 
 		final Router router = Router.router(WebServer.vertX);
 
-		getRoutes().entries().forEach((e) -> {
+		getRouteHandlers().entries().forEach((e) -> {
 			addRoute(router, e.getKey(), e.getValue());
 		});
 
@@ -314,50 +370,6 @@ public class APIRoutes extends SpiDelegate<BaseService> {
 			r.handler(handler.getHandler());
 		}
 
-	}
-
-	public static void clear() {
-		routes = null;
-	}
-
-	public static Collection<RouteHandler> getRouteHandler(Route route) {
-		return routeKeys.get(route.toString());
-	}
-
-	private static final void registerRoute(Route route, RouteHandler handler) {
-
-		// Actually, this check is not necessary, and should be removed, since in
-		// practice, different service methods can use the same route signature.
-		// This was originally done to ensure code integrity, in initial architectural
-		// design
-		if (!routeKeys.containsKey(route.toString()) || route.toString().equals("*")) {
-			routeKeys.put(route.toString(), handler);
-			routes.put(route, handler);
-		} else {
-			throw new ResourceException(ResourceException.RESOURCE_ALREADY_EXISTS,
-					"Route: " + route + " already exists");
-		}
-	}
-
-	/**
-	 * Note: All routes paths returned are not prefixed with
-	 * {@code APIRoutes.BASE_PATH}. All callers should consolidate this when setting
-	 * up their respective containers. <br>
-	 * Also, note that exceptions will possibly be thrown during the execution of
-	 * these handlers, and callers should create proper exception catching mechanism
-	 * on their containers. <br>
-	 * Callers should create mechanisms to properly end the response after all
-	 * handlers, have finished execution
-	 */
-	public static Multimap<Route, RouteHandler> getRoutes() {
-		if (routes == null) {
-			scanRoutes();
-		}
-		return routes;
-	}
-
-	public static List<String> getUri(Functionality functionality) {
-		return functionalityToRoutesMappings.get(functionality.getId());
 	}
 
 	static {

@@ -1,4 +1,5 @@
 .settings/
+.vscode/
 src/main/resources/web
 target/
 .classpath

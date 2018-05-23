@@ -1,0 +1,5 @@
+
+SpiDelegate: Implement add(..) and remove(..) accross all delegates. Make them abstract in SpiDelegate
+
+@DependsOn: Implement this annotation that indicates that an SpiDelegate depends on another. It is only on  
+            platform initialization rather than App

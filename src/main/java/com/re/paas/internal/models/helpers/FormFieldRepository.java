@@ -10,7 +10,8 @@ import com.re.paas.internal.base.core.BlockerTodo;
 import com.re.paas.internal.core.forms.CompositeEntry;
 import com.re.paas.internal.core.forms.InputType;
 import com.re.paas.internal.core.forms.SimpleEntry;
-import com.re.paas.internal.core.fusion.APIRoutes;
+import com.re.paas.internal.core.fusion.api.BaseService;
+import com.re.paas.internal.core.fusion.api.ServiceDelegate;
 import com.re.paas.internal.core.users.Functionality;
 import com.re.paas.internal.core.users.RoleRealm;
 import com.re.paas.internal.models.ConfigModel;
@@ -22,6 +23,8 @@ public class FormFieldRepository {
 	private static final String FORM_FIELD_MAPPING_KEY_PREFIX = "FORM_FIELD_MAPPING_";
 
 	public static void createDefaultFields() {
+
+		ServiceDelegate serviceDelegate = BaseService.getDelegate();
 
 		FormModel.newSection(ClientRBRef.get("profile_information"), FormSectionType.APPLICATION_FORM)
 				.forEach((k, v) -> {
@@ -97,7 +100,7 @@ public class FormFieldRepository {
 					case ADMIN:
 					case ORGANIZATION_ADMIN:
 					case AGENT:
-
+						
 						saveFieldId(k, FieldType.ADDRESS,
 								FormModel.newSimpleField(v,
 										(SimpleEntry) new SimpleEntry(InputType.ADDRESS, ClientRBRef.get("address"))
@@ -105,19 +108,19 @@ public class FormFieldRepository {
 
 						String countryField = FormModel.newCompositeField(v,
 								(CompositeEntry) new CompositeEntry(ClientRBRef.get("country"))
-										.setItemsSource(APIRoutes.getUri(Functionality.GET_COUNTRY_NAMES).get(0))
+										.setItemsSource(serviceDelegate.getFunctionalityRoute(Functionality.GET_COUNTRY_NAMES).get(0))
 										.setSortOrder(3).setIsDefault(true));
 						saveFieldId(k, FieldType.COUNTRY, countryField);
 
 						String stateField = FormModel.newCompositeField(v,
 								(CompositeEntry) new CompositeEntry(ClientRBRef.get("state"))
-										.setItemsSource(APIRoutes.getUri(Functionality.GET_TERRITORY_NAMES).get(0))
+										.setItemsSource(serviceDelegate.getFunctionalityRoute(Functionality.GET_TERRITORY_NAMES).get(0))
 										.setContext(countryField).setSortOrder(4).setIsDefault(true));
 						saveFieldId(k, FieldType.STATE, stateField);
 
 						String cityField = FormModel.newCompositeField(v,
 								(CompositeEntry) new CompositeEntry(ClientRBRef.get("city"))
-										.setItemsSource(APIRoutes.getUri(Functionality.GET_CITY_NAMES).get(0))
+										.setItemsSource(serviceDelegate.getFunctionalityRoute(Functionality.GET_CITY_NAMES).get(0))
 										.setContext(stateField).setSortOrder(5).setIsDefault(true));
 						saveFieldId(k, FieldType.CITY, cityField);
 
@@ -177,19 +180,19 @@ public class FormFieldRepository {
 
 						String countryField = FormModel.newCompositeField(v,
 								(CompositeEntry) new CompositeEntry(ClientRBRef.get("country"))
-										.setItemsSource(APIRoutes.getUri(Functionality.GET_COUNTRY_NAMES).get(0))
+										.setItemsSource(serviceDelegate.getFunctionalityRoute(Functionality.GET_COUNTRY_NAMES).get(0))
 										.setSortOrder(10).setIsDefault(true));
 						saveFieldId(k, FieldType.ORGANIZATION_COUNTRY, countryField);
 
 						String stateField = FormModel.newCompositeField(v,
 								(CompositeEntry) new CompositeEntry(ClientRBRef.get("state"))
-										.setItemsSource(APIRoutes.getUri(Functionality.GET_TERRITORY_NAMES).get(0))
+										.setItemsSource(serviceDelegate.getFunctionalityRoute(Functionality.GET_TERRITORY_NAMES).get(0))
 										.setContext(countryField).setSortOrder(12).setIsDefault(true));
 						saveFieldId(k, FieldType.ORGANIZATION_STATE, stateField);
 
 						String cityField = FormModel.newCompositeField(v,
 								(CompositeEntry) new CompositeEntry(ClientRBRef.get("city"))
-										.setItemsSource(APIRoutes.getUri(Functionality.GET_CITY_NAMES).get(0))
+										.setItemsSource(serviceDelegate.getFunctionalityRoute(Functionality.GET_CITY_NAMES).get(0))
 										.setContext(stateField).setSortOrder(14).setIsDefault(true));
 						saveFieldId(k, FieldType.ORGANIZATION_CITY, cityField);
 
@@ -208,7 +211,7 @@ public class FormFieldRepository {
 
 				String organizationField = FormModel.newCompositeField(v,
 						(CompositeEntry) new CompositeEntry(ClientRBRef.get("organization"))
-								.setItemsSource(APIRoutes.getUri(Functionality.LIST_AGENT_ORGANIZATION_NAMES).get(0))
+								.setItemsSource(serviceDelegate.getFunctionalityRoute(Functionality.LIST_AGENT_ORGANIZATION_NAMES).get(0))
 								.setContext(cityField).setSortOrder(2).setIsDefault(true));
 				saveFieldId(k, FieldType.AGENT_ORGANIZATION, organizationField);
 

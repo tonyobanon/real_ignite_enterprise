@@ -2,14 +2,14 @@ package com.re.paas.internal.core.fusion;
 
 import java.net.InetAddress;
 
-public class MicroServiceOptions {
+public class ServerOptions {
 
 	private boolean enableCors;
 	
 	private InetAddress host;
 	private Integer port;
 
-	public MicroServiceOptions() {
+	public ServerOptions() {
 	}
 
 	/*
@@ -25,7 +25,7 @@ public class MicroServiceOptions {
 		return host;
 	}
 
-	public MicroServiceOptions withHost(InetAddress host) {
+	public ServerOptions withHost(InetAddress host) {
 		this.host = host;
 		return this;
 	}
@@ -34,19 +34,19 @@ public class MicroServiceOptions {
 		return port;
 	}
 
-	public MicroServiceOptions withPort(Integer port) {
+	public ServerOptions withPort(Integer port) {
 		this.port = port;
 		return this;
 	}
 
 	
 
-	public MicroServiceOptions enableCors() {
+	public ServerOptions enableCors() {
 		this.enableCors = true;
 		return this;
 	}
 
-	public MicroServiceOptions disableCors() {
+	public ServerOptions disableCors() {
 		this.enableCors = false;
 		return this;
 	}

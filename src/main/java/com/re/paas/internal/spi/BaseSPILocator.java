@@ -137,5 +137,9 @@ public abstract class BaseSPILocator {
 	}
 
 	abstract Class<?> classType();
+	
+	Class<?> delegateType() {
+		return Object.class;
+	}
 
 }

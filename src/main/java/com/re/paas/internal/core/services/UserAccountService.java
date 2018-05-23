@@ -6,12 +6,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.re.paas.internal.base.classes.spec.LoginIdType;
 import com.re.paas.internal.base.core.PlatformException;
-import com.re.paas.internal.core.fusion.BaseService;
 import com.re.paas.internal.core.fusion.CookieImpl;
-import com.re.paas.internal.core.fusion.FusionEndpoint;
 import com.re.paas.internal.core.fusion.FusionHelper;
 import com.re.paas.internal.core.fusion.Sessions;
 import com.re.paas.internal.core.fusion.WebRoutes;
+import com.re.paas.internal.core.fusion.api.BaseService;
+import com.re.paas.internal.core.fusion.api.FusionEndpoint;
 import com.re.paas.internal.core.keys.CacheValues;
 import com.re.paas.internal.core.users.Functionality;
 import com.re.paas.internal.models.BaseUserModel;
